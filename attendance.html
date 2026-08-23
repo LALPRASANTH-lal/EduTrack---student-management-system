@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance – EduTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="one">
+        <div class="header">
+            <i class="fa-solid fa-graduation-cap" style="margin-right:12px;"></i>
+            EduTrack
+        </div>
+
+        <div class="nav">
+            <div class="menu">
+                <a href="./dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="./students.html"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="./add-student.html"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+                <a href="./courses.html"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="./attendance.html" class="active"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+                <a href="./marks.html"><i class="fa-solid fa-clipboard-list"></i> Marks</a>
+                <a href="./reports.html"><i class="fa-solid fa-file-chart-column"></i> Reports</a>
+                <a href="./profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <h2><i class="fa-solid fa-calendar-check" style="margin-right:10px;"></i>Attendance</h2>
+
+            <div class="attendance-toolbar">
+                <label for="attDate">Date:</label>
+                <input type="date" id="attDate">
+                <button class="add-btn" onclick="markAll('present')"><i class="fa-solid fa-check"></i> Mark All Present</button>
+                <button class="cancel-btn" onclick="markAll('absent')"><i class="fa-solid fa-xmark"></i> Mark All Absent</button>
+            </div>
+
+            <div class="attendance-list" id="attendanceList"></div>
+
+            <p id="emptyMsg" class="empty-state" style="display:none;">
+                <i class="fa-solid fa-user-slash"></i>
+                No students to mark attendance for.
+                <a href="./add-student.html">Add a student →</a>
+            </p>
+
+            <div class="attendance-summary" id="summary" style="display:none;">
+                <div class="summary-pill"><span id="presentCount">0</span><small>Present</small></div>
+                <div class="summary-pill"><span id="absentCount">0</span><small>Absent</small></div>
+                <div class="summary-pill"><span id="pctCount">0%</span><small>Attendance Rate</small></div>
+            </div>
+
+            <div class="buttons">
+                <button class="add-btn" onclick="saveAttendance()"><i class="fa-solid fa-floppy-disk"></i> Save Attendance</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Attendance saved!</span></div>
+
+    <script>
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+        const attendanceData = JSON.parse(localStorage.getItem("attendance")) || {};
+
+        const dateInput = document.getElementById("attDate");
+        dateInput.value = new Date().toISOString().slice(0, 10);
+
+        let currentStatus = {};
+
+        function render() {
+            const list = document.getElementById("attendanceList");
+            const empty = document.getElementById("emptyMsg");
+            const summary = document.getElementById("summary");
+
+            if (students.length === 0) {
+                list.innerHTML = "";
+                empty.style.display = "block";
+                summary.style.display = "none";
+                return;
+            }
+            empty.style.display = "none";
+            summary.style.display = "flex";
+
+            const dayRecord = attendanceData[dateInput.value] || {};
+            currentStatus = { ...dayRecord };
+
+            list.innerHTML = students.map(s => `
+                <div class="attendance-row">
+                    <div class="attendance-student">
+                        <div class="mini-avatar">${s.name ? s.name[0].toUpperCase() : "?"}</div>
+                        <div>
+                            <div class="name">${s.name}</div>
+                            <div class="sub">${s.course} · ID ${s.id || "—"}</div>
+                        </div>
+                    </div>
+                    <div class="status-btn-group">
+                        <button type="button" class="status-btn present ${currentStatus[s.uid] === 'present' ? 'active' : ''}" onclick="setStatus('${s.uid}','present')">Present</button>
+                        <button type="button" class="status-btn absent ${currentStatus[s.uid] === 'absent' ? 'active' : ''}" onclick="setStatus('${s.uid}','absent')">Absent</button>
+                    </div>
+                </div>
+            `).join("");
+
+            updateSummary();
+        }
+
+        function setStatus(uid, status) {
+            currentStatus[uid] = status;
+            render_row_states();
+            updateSummary();
+        }
+
+        function render_row_states() {
+            document.querySelectorAll(".attendance-row").forEach((row, i) => {
+                const uid = students[i].uid;
+                row.querySelector(".present").classList.toggle("active", currentStatus[uid] === "present");
+                row.querySelector(".absent").classList.toggle("active", currentStatus[uid] === "absent");
+            });
+        }
+
+        function markAll(status) {
+            students.forEach(s => currentStatus[s.uid] = status);
+            render_row_states();
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const values = Object.values(currentStatus);
+            const present = values.filter(v => v === "present").length;
+            const absent = values.filter(v => v === "absent").length;
+            document.getElementById("presentCount").textContent = present;
+            document.getElementById("absentCount").textContent = absent;
+            const total = students.length || 1;
+            document.getElementById("pctCount").textContent = Math.round((present / total) * 100) + "%";
+        }
+
+        function saveAttendance() {
+            attendanceData[dateInput.value] = currentStatus;
+            localStorage.setItem("attendance", JSON.stringify(attendanceData));
+
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").textContent = "Attendance saved for " + dateInput.value;
+            toast.className = "toast";
+            toast.style.display = "flex";
+            setTimeout(() => { toast.style.display = "none"; }, 3000);
+        }
+
+        dateInput.addEventListener("change", render);
+        render();
+    </script>
+</body>
+</html>

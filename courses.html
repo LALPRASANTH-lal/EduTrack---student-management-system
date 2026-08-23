@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses – EduTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="one">
+        <div class="header">
+            <i class="fa-solid fa-graduation-cap" style="margin-right:12px;"></i>
+            EduTrack
+        </div>
+
+        <div class="nav">
+            <div class="menu">
+                <a href="./dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="./students.html"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="./add-student.html"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+                <a href="./courses.html" class="active"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="./attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+                <a href="./marks.html"><i class="fa-solid fa-clipboard-list"></i> Marks</a>
+                <a href="./reports.html"><i class="fa-solid fa-file-chart-column"></i> Reports</a>
+                <a href="./profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="main-header">
+                <h2><i class="fa-solid fa-book" style="margin-right:10px;"></i>Courses</h2>
+                <div style="color:#888;font-size:14px;"><span style="color:#76B900;font-weight:bold;font-size:18px;">5</span> courses available</div>
+            </div>
+
+            <div class="course-grid" id="courseGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        const COURSES = [
+            { code: "CSE", icon: "fa-laptop-code", duration: "4 Years",
+              desc: "Computer Science Engineering — programming, databases, networking, and software development fundamentals." },
+            { code: "ECE", icon: "fa-microchip", duration: "4 Years",
+              desc: "Electronics and Communication Engineering — electronics, communication systems, embedded tech, and signal processing." },
+            { code: "MECH", icon: "fa-gears", duration: "4 Years",
+              desc: "Mechanical Engineering — mechanical design, manufacturing, thermodynamics, and robotics." },
+            { code: "EEE", icon: "fa-bolt", duration: "4 Years",
+              desc: "Electrical and Electronics Engineering — circuits, power systems, control systems, and electrical technologies." },
+            { code: "AIDS", icon: "fa-brain", duration: "4 Years",
+              desc: "Artificial Intelligence and Data Science — machine learning, data science, and intelligent systems." }
+        ];
+
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+
+        const grid = document.getElementById("courseGrid");
+        grid.innerHTML = COURSES.map(c => {
+            const count = students.filter(s => s.course === c.code).length;
+            return `
+            <div class="course-card">
+                <div class="course-icon"><i class="fa-solid ${c.icon}"></i></div>
+                <h3>${c.code}</h3>
+                <p>${c.desc}</p>
+                <div class="course-meta">
+                    <span class="course-badge"><i class="fa-solid fa-clock"></i> ${c.duration}</span>
+                    <span class="course-badge"><i class="fa-solid fa-users"></i> ${count} Student${count !== 1 ? "s" : ""}</span>
+                </div>
+                <a class="view-link-btn" href="./students.html?course=${c.code}">View Students →</a>
+            </div>`;
+        }).join("");
+    </script>
+</body>
+</html>

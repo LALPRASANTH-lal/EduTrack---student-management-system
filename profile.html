@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile – EduTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="one">
+        <div class="header">
+            <i class="fa-solid fa-graduation-cap" style="margin-right:12px;"></i>
+            EduTrack
+        </div>
+
+        <div class="nav">
+            <div class="menu">
+                <a href="./dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="./students.html"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="./add-student.html"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+                <a href="./courses.html"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="./attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+                <a href="./marks.html"><i class="fa-solid fa-clipboard-list"></i> Marks</a>
+                <a href="./reports.html"><i class="fa-solid fa-file-chart-column"></i> Reports</a>
+                <a href="./profile.html" class="active"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <h2>My Profile</h2>
+            <div class="container">
+                <div class="profile-pic-wrap">
+                    <img id="profilePicPreview" src="https://placehold.co/110x110/1a1a1a/76B900?text=Admin" alt="Profile picture">
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Upload Profile Picture</label>
+                        <input type="file" id="profilePic" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="name" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Institution</label>
+                        <input type="text" id="institution" placeholder="e.g. Greenfield Institute of Technology">
+                    </div>
+                    <div class="form-group full">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group full">
+                        <label>Password</label>
+                        <input type="password" id="password" placeholder="Enter new password">
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="add-btn" onclick="saveProfile()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                    <button class="cancel-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Profile saved!</span></div>
+
+    <script>
+        const saved = JSON.parse(localStorage.getItem("profile")) || {};
+        document.getElementById("name").value = saved.name || "";
+        document.getElementById("email").value = saved.email || "";
+        document.getElementById("institution").value = saved.institution || "";
+        if (saved.picture) document.getElementById("profilePicPreview").src = saved.picture;
+
+        let picData = saved.picture || "";
+        document.getElementById("profilePic").addEventListener("change", function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    picData = e.target.result;
+                    document.getElementById("profilePicPreview").src = picData;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").textContent = msg;
+            toast.style.display = "flex";
+            setTimeout(() => { toast.style.display = "none"; }, 2500);
+        }
+
+        function saveProfile() {
+            const profile = {
+                name: document.getElementById("name").value,
+                email: document.getElementById("email").value,
+                institution: document.getElementById("institution").value,
+                password: document.getElementById("password").value,
+                picture: picData
+            };
+            localStorage.setItem("profile", JSON.stringify(profile));
+            showToast("Profile saved!");
+        }
+
+        function logout() {
+            showToast("Logged out!");
+            setTimeout(() => { window.location.href = "./dashboard.html"; }, 800);
+        }
+    </script>
+</body>
+</html>

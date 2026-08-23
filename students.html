@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students – EduTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .delete-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #e53935;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: .3s;
+        }
+        .delete-btn:hover { background: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="one">
+        <div class="header">
+            <i class="fa-solid fa-graduation-cap" style="margin-right:12px;"></i>
+            EduTrack
+        </div>
+
+        <div class="nav">
+            <div class="menu">
+                <a href="./dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="./students.html" class="active"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="./add-student.html"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+                <a href="./courses.html"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="./attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+                <a href="./marks.html"><i class="fa-solid fa-clipboard-list"></i> Marks</a>
+                <a href="./reports.html"><i class="fa-solid fa-file-chart-column"></i> Reports</a>
+                <a href="./profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="main-header">
+                <h2><i class="fa-solid fa-users" style="margin-right:10px;"></i>Students</h2>
+                <div class="main-header-controls">
+                    <select id="courseFilter" class="filter-select" onchange="filterStudents()">
+                        <option value="">All Courses</option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="MECH">MECH</option>
+                        <option value="EEE">EEE</option>
+                        <option value="AIDS">AIDS</option>
+                    </select>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search student..." oninput="filterStudents()">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="studentList"></div>
+
+            <p id="emptyMsg" class="empty-state" style="display:none;">
+                <i class="fa-solid fa-user-slash"></i>
+                No students found.
+                <a href="./add-student.html">Add one now →</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let students = JSON.parse(localStorage.getItem("students")) || [];
+
+        // Prefill course filter from a query param (e.g. coming from Courses page)
+        const params = new URLSearchParams(window.location.search);
+        const courseParam = params.get("course");
+        if (courseParam) {
+            document.getElementById("courseFilter").value = courseParam;
+        }
+
+        function renderStudents(list) {
+            const container = document.getElementById("studentList");
+            const empty = document.getElementById("emptyMsg");
+
+            if (list.length === 0) {
+                container.innerHTML = "";
+                empty.style.display = "block";
+                return;
+            }
+            empty.style.display = "none";
+
+            container.className = "";
+            container.style.display = "grid";
+            container.style.gridTemplateColumns = "repeat(auto-fill, minmax(300px, 1fr))";
+            container.style.gap = "20px";
+
+            container.innerHTML = list.map(student => `
+                <div class="student-card">
+                    <div class="profile-icon"><i class="fa-solid fa-user"></i></div>
+                    <h3>${student.name}</h3>
+                    <p><strong>ID:</strong> ${student.id || "—"}</p>
+                    <p><strong>Gender:</strong> ${student.gender || "—"}</p>
+                    <p><strong>Age:</strong> ${student.age || "—"}</p>
+                    <p><strong>Email:</strong> ${student.email || "—"}</p>
+                    <p><strong>Course:</strong> <span style="color:#76B900;font-weight:bold;">${student.course}</span></p>
+                    <p style="border-bottom:none;"><strong>Address:</strong> ${student.address || "—"}</p>
+                    <button class="delete-btn" onclick="deleteStudent('${student.uid}')">
+                        <i class="fa-solid fa-trash"></i> Delete Student
+                    </button>
+                </div>
+            `).join("");
+        }
+
+        function filterStudents() {
+            const q = document.getElementById("searchInput").value.toLowerCase();
+            const course = document.getElementById("courseFilter").value;
+
+            const filtered = students.filter(s => {
+                const matchesQuery = s.name.toLowerCase().includes(q) ||
+                    (s.email && s.email.toLowerCase().includes(q)) ||
+                    s.course.toLowerCase().includes(q);
+                const matchesCourse = !course || s.course === course;
+                return matchesQuery && matchesCourse;
+            });
+
+            renderStudents(filtered);
+        }
+
+        function deleteStudent(uid) {
+            if (!confirm("Are you sure you want to delete this student?")) return;
+            students = students.filter(s => s.uid !== uid);
+            localStorage.setItem("students", JSON.stringify(students));
+            filterStudents();
+        }
+
+        filterStudents();
+    </script>
+</body>
+</html>

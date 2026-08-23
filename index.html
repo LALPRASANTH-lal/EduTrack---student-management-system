@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Student Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            height: 100vh;
+            background: #0a0a0a;
+            border-top: #76B900;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Decorative background grid */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(118,185,0,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(118,185,0,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .login-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .brand {
+            text-align: center;
+        }
+
+        .brand h1 {
+            color: #76B900;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .brand p {
+            color: #555;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .login-box {
+            width: 380px;
+            background: #111111;
+            border: 1px solid #2a2a2a;
+            border-top: 3px solid #76B900;
+            padding: 40px 36px;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow:
+                0 0 20px rgba(118,185,0,0.15),
+                0 0 40px rgba(118,185,0,0.05);
+        }
+
+        .login-box h2 {
+            text-align: center;
+            color: white;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .login-box h2 span { color: #76B900; }
+
+        .input-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 14px 14px 14px 46px;
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-box input::placeholder { color: #555; }
+
+        .input-box input:focus {
+            border-color: #76B900;
+            box-shadow: 0 0 10px rgba(118,185,0,0.3);
+        }
+
+        .icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #76B900;
+            font-size: 16px;
+        }
+
+        .login-box button {
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #76B900;
+            color: black;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            letter-spacing: 0.5px;
+        }
+
+        .login-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 18px rgba(118,185,0,0.5);
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: -5px;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #76B900; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="brand">
+            <h1><i class="fa-solid fa-graduation-cap"></i> SMS</h1>
+            <p>Student Management System</p>
+        </div>
+
+        <form class="login-box" id="loginForm" onsubmit="handleLogin(event)">
+            <h2>Welcome <span>Back</span></h2>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="input-box">
+                <i class="icon fa-solid fa-envelope"></i>
+                <input type="text" id="email" placeholder="Email address">
+            </div>
+
+            <div class="input-box">
+                <i class="icon fa-solid fa-lock"></i>
+                <input type="password" id="password" placeholder="Password">
+            </div>
+
+            <button type="submit">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Login
+            </button>
+        </form>
+    </div>
+
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById("email").value.trim();
+            const passwordInput = document.getElementById("password").value.trim();
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (emailInput === "" || passwordInput === "") {
+                showError("Please fill out all fields.");
+                return;
+            }
+            if (!emailPattern.test(emailInput)) {
+                showError("Please enter a valid email address.");
+                return;
+            }
+
+            document.getElementById("errorMessage").style.display = "none";
+            window.location.href = "dashboard.html";
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById("errorMessage");
+            errorDiv.textContent = message;
+            errorDiv.style.display = "block";
+        }
+    </script>
+</body>
+</html>

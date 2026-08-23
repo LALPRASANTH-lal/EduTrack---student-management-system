@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marks – EduTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="one">
+        <div class="header">
+            <i class="fa-solid fa-graduation-cap" style="margin-right:12px;"></i>
+            EduTrack
+        </div>
+
+        <div class="nav">
+            <div class="menu">
+                <a href="./dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="./students.html"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="./add-student.html"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+                <a href="./courses.html"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="./attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+                <a href="./marks.html" class="active"><i class="fa-solid fa-clipboard-list"></i> Marks</a>
+                <a href="./reports.html"><i class="fa-solid fa-file-chart-column"></i> Reports</a>
+                <a href="./profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <h2><i class="fa-solid fa-clipboard-list" style="margin-right:10px;"></i>Marks</h2>
+
+            <div class="container" style="margin-bottom:30px;">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user" style="color:#76B900;margin-right:6px;"></i>Student</label>
+                        <select id="studentSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-book-open" style="color:#76B900;margin-right:6px;"></i>Subject</label>
+                        <select id="subjectSelect">
+                            <option>Mathematics</option>
+                            <option>Physics</option>
+                            <option>Chemistry</option>
+                            <option>Programming</option>
+                            <option>English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-star" style="color:#76B900;margin-right:6px;"></i>Marks Obtained</label>
+                        <input type="number" id="obtained" placeholder="e.g. 78" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-square-full" style="color:#76B900;margin-right:6px;"></i>Max Marks</label>
+                        <input type="number" id="maxMarks" placeholder="e.g. 100" value="100" min="1">
+                    </div>
+                </div>
+                <div class="error-text" id="marksError" style="text-align:center;"></div>
+                <div class="buttons">
+                    <button class="add-btn" onclick="addMark()"><i class="fa-solid fa-plus"></i> Add Marks</button>
+                </div>
+            </div>
+
+            <div class="main-header">
+                <h2 style="font-size:20px;">Recorded Marks</h2>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by student or subject..." oninput="renderTable()">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+            </div>
+
+            <table class="data-table" id="marksTable">
+                <thead>
+                    <tr><th>Student</th><th>Subject</th><th>Marks</th><th>%</th><th>Grade</th><th></th></tr>
+                </thead>
+                <tbody id="marksBody"></tbody>
+            </table>
+
+            <p id="emptyMsg" class="empty-state" style="display:none;">
+                <i class="fa-solid fa-clipboard"></i>
+                No marks recorded yet.
+            </p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Marks added!</span></div>
+
+    <script>
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+        let marks = JSON.parse(localStorage.getItem("marks")) || [];
+
+        const studentSelect = document.getElementById("studentSelect");
+        if (students.length === 0) {
+            studentSelect.innerHTML = '<option value="">No students available</option>';
+        } else {
+            studentSelect.innerHTML = students.map(s => `<option value="${s.uid}">${s.name} (${s.course})</option>`).join("");
+        }
+
+        function gradeFor(pct) {
+            if (pct >= 90) return "A";
+            if (pct >= 75) return "B";
+            if (pct >= 60) return "C";
+            if (pct >= 40) return "D";
+            return "F";
+        }
+
+        function addMark() {
+            const errorEl = document.getElementById("marksError");
+            errorEl.textContent = "";
+
+            const uid = studentSelect.value;
+            const subject = document.getElementById("subjectSelect").value;
+            const obtained = parseFloat(document.getElementById("obtained").value);
+            const max = parseFloat(document.getElementById("maxMarks").value);
+
+            if (!uid) { errorEl.textContent = "Add a student first before recording marks."; return; }
+            if (isNaN(obtained) || isNaN(max) || max <= 0) { errorEl.textContent = "Enter valid marks."; return; }
+            if (obtained > max) { errorEl.textContent = "Marks obtained can't exceed max marks."; return; }
+
+            const student = students.find(s => s.uid === uid);
+            marks.push({
+                id: crypto.randomUUID(),
+                uid, studentName: student.name, subject, obtained, max
+            });
+            localStorage.setItem("marks", JSON.stringify(marks));
+
+            document.getElementById("obtained").value = "";
+            renderTable();
+
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").textContent = "Marks recorded for " + student.name;
+            toast.style.display = "flex";
+            setTimeout(() => { toast.style.display = "none"; }, 2500);
+        }
+
+        function deleteMark(id) {
+            marks = marks.filter(m => m.id !== id);
+            localStorage.setItem("marks", JSON.stringify(marks));
+            renderTable();
+        }
+
+        function renderTable() {
+            const q = document.getElementById("searchInput").value.toLowerCase();
+            const filtered = marks.filter(m =>
+                m.studentName.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q)
+            );
+
+            const body = document.getElementById("marksBody");
+            const empty = document.getElementById("emptyMsg");
+            const table = document.getElementById("marksTable");
+
+            if (filtered.length === 0) {
+                body.innerHTML = "";
+                empty.style.display = "block";
+                table.style.display = "none";
+                return;
+            }
+            table.style.display = "table";
+            empty.style.display = "none";
+
+            body.innerHTML = [...filtered].reverse().map(m => {
+                const pct = Math.round((m.obtained / m.max) * 100);
+                const grade = gradeFor(pct);
+                return `
+                <tr>
+                    <td>${m.studentName}</td>
+                    <td>${m.subject}</td>
+                    <td>${m.obtained} / ${m.max}</td>
+                    <td>${pct}%</td>
+                    <td><span class="grade-badge grade-${grade}">${grade}</span></td>
+                    <td><button class="icon-btn" onclick="deleteMark('${m.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            }).join("");
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

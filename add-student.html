@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student – EduTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="one">
+        <div class="header">
+            <i class="fa-solid fa-graduation-cap" style="margin-right:12px;"></i>
+            EduTrack
+        </div>
+
+        <div class="nav">
+            <div class="menu">
+                <a href="./dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="./students.html"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="./add-student.html" class="active"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+                <a href="./courses.html"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="./attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+                <a href="./marks.html"><i class="fa-solid fa-clipboard-list"></i> Marks</a>
+                <a href="./reports.html"><i class="fa-solid fa-file-chart-column"></i> Reports</a>
+                <a href="./profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <h2><i class="fa-solid fa-user-plus" style="margin-right:10px;"></i>Add Student</h2>
+
+            <div class="container">
+                <form id="studentForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-id-card" style="color:#76B900;margin-right:6px;"></i>Student ID</label>
+                            <input type="text" id="id" placeholder="e.g. 1001">
+                            <div class="error-text" id="idError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-user" style="color:#76B900;margin-right:6px;"></i>Student Name</label>
+                            <input type="text" id="name" placeholder="Full name">
+                            <div class="error-text" id="nameError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-calendar" style="color:#76B900;margin-right:6px;"></i>Age</label>
+                            <input type="number" id="age" placeholder="e.g. 20" min="5" max="100">
+                            <div class="error-text" id="ageError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-envelope" style="color:#76B900;margin-right:6px;"></i>Email</label>
+                            <input type="email" id="email" placeholder="student@email.com">
+                            <div class="error-text" id="emailError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-book" style="color:#76B900;margin-right:6px;"></i>Course</label>
+                            <select id="course">
+                                <option>CSE</option>
+                                <option>ECE</option>
+                                <option>MECH</option>
+                                <option>EEE</option>
+                                <option>AIDS</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-venus-mars" style="color:#76B900;margin-right:6px;"></i>Gender</label>
+                            <div class="gender" style="margin-top:8px;">
+                                <label><input type="radio" name="gender" value="Male"> Male</label>
+                                <label><input type="radio" name="gender" value="Female"> Female</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group full">
+                            <label><i class="fa-solid fa-location-dot" style="color:#76B900;margin-right:6px;"></i>Address</label>
+                            <textarea id="address" rows="4" placeholder="Full address..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <button type="button" class="add-btn" onclick="addStudent()">
+                            <i class="fa-solid fa-upload"></i> Add Student
+                        </button>
+                        <button type="reset" class="cancel-btn" onclick="clearErrors()">
+                            <i class="fa-solid fa-xmark"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Student Added Successfully!</span></div>
+
+    <script>
+        function clearErrors() {
+            document.querySelectorAll(".error-text").forEach(e => e.textContent = "");
+        }
+
+        function showToast(message, isError) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").textContent = message;
+            toast.className = "toast" + (isError ? " error" : "");
+            toast.style.display = "flex";
+            setTimeout(() => { toast.style.display = "none"; }, 3000);
+        }
+
+        function addStudent() {
+            clearErrors();
+            const id = document.getElementById("id").value.trim();
+            const name = document.getElementById("name").value.trim();
+            const age = document.getElementById("age").value;
+            const email = document.getElementById("email").value.trim();
+            const course = document.getElementById("course").value;
+            const address = document.getElementById("address").value.trim();
+            const gender = document.querySelector('input[name="gender"]:checked')?.value || "";
+
+            const students = JSON.parse(localStorage.getItem("students")) || [];
+            let hasError = false;
+
+            if (!name) {
+                document.getElementById("nameError").textContent = "Name is required.";
+                hasError = true;
+            }
+            if (!id) {
+                document.getElementById("idError").textContent = "Student ID is required.";
+                hasError = true;
+            } else if (students.some(s => s.id === id)) {
+                document.getElementById("idError").textContent = "This ID is already in use.";
+                hasError = true;
+            }
+            if (age && (age < 5 || age > 100)) {
+                document.getElementById("ageError").textContent = "Enter a realistic age.";
+                hasError = true;
+            }
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                document.getElementById("emailError").textContent = "Enter a valid email address.";
+                hasError = true;
+            }
+
+            if (hasError) {
+                showToast("Please fix the highlighted fields.", true);
+                return;
+            }
+
+            students.push({
+                uid: crypto.randomUUID(),
+                id, name, age, email, course, address, gender
+            });
+            localStorage.setItem("students", JSON.stringify(students));
+
+            showToast("Student added successfully!", false);
+            document.getElementById("studentForm").reset();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – EduTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="one">
+        <div class="header">
+            <i class="fa-solid fa-graduation-cap" style="margin-right:12px;"></i>
+            EduTrack
+        </div>
+
+        <div class="nav">
+            <div class="menu">
+                <a href="./dashboard.html" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="./students.html"><i class="fa-solid fa-users"></i> Students</a>
+                <a href="./add-student.html"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+                <a href="./courses.html"><i class="fa-solid fa-book"></i> Courses</a>
+                <a href="./attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+                <a href="./marks.html"><i class="fa-solid fa-clipboard-list"></i> Marks</a>
+                <a href="./reports.html"><i class="fa-solid fa-file-chart-column"></i> Reports</a>
+                <a href="./profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <h2>Dashboard Overview</h2>
+
+            <div class="cards">
+                <div class="card">
+                    <i class="fa-solid fa-user"></i>
+                    <div>
+                        <h3>Total Students</h3>
+                        <p id="totalStudents">0</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-book"></i>
+                    <div>
+                        <h3>Total Courses</h3>
+                        <p>5</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <div>
+                        <h3>Today's Attendance</h3>
+                        <p id="todayAttendance">—</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <div>
+                        <h3>Avg. Marks</h3>
+                        <p id="avgMarks">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="chart-box">
+                    <h3><i class="fa-solid fa-chart-bar" style="margin-right:8px;"></i>Students by Course</h3>
+                    <canvas id="courseChart" height="230"></canvas>
+                </div>
+
+                <div class="chart-box">
+                    <h3><i class="fa-solid fa-arrow-trend-up" style="margin-right:8px;"></i>Attendance – Last 7 Days</h3>
+                    <canvas id="attendanceChart" height="230"></canvas>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="student-box" style="flex:1;">
+                    <h3><i class="fa-solid fa-clock-rotate-left" style="margin-right:8px;"></i>Recently Added Students</h3>
+                    <div id="recentStudents" style="display:flex;flex-direction:column;gap:12px;margin-top:10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        const COURSES = ["CSE","ECE","MECH","EEE","AIDS"];
+        const students = JSON.parse(localStorage.getItem("students")) || [];
+        const attendance = JSON.parse(localStorage.getItem("attendance")) || {};
+        const marks = JSON.parse(localStorage.getItem("marks")) || [];
+
+        document.getElementById("totalStudents").textContent = students.length;
+
+        // Today's attendance %
+        const todayKey = new Date().toISOString().slice(0,10);
+        const todayRecord = attendance[todayKey];
+        if (todayRecord && students.length > 0) {
+            const presentCount = Object.values(todayRecord).filter(v => v === "present").length;
+            const pct = Math.round((presentCount / students.length) * 100);
+            document.getElementById("todayAttendance").textContent = pct + "%";
+        } else {
+            document.getElementById("todayAttendance").textContent = "N/A";
+        }
+
+        // Average marks %
+        if (marks.length > 0) {
+            const avgPct = marks.reduce((sum, m) => sum + (m.obtained / m.max) * 100, 0) / marks.length;
+            document.getElementById("avgMarks").textContent = Math.round(avgPct) + "%";
+        } else {
+            document.getElementById("avgMarks").textContent = "N/A";
+        }
+
+        // Recent students (last 5)
+        const recent = [...students].reverse().slice(0, 5);
+        const recentEl = document.getElementById("recentStudents");
+        if (recent.length === 0) {
+            recentEl.innerHTML = '<p style="color:#555;font-size:14px;">No students added yet.</p>';
+        } else {
+            recentEl.innerHTML = recent.map(s => `
+                <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#1f1f1f;border-radius:10px;border:1px solid #2a2a2a;">
+                    <div style="width:38px;height:38px;background:#76B900;border-radius:50%;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;font-size:16px;flex-shrink:0;">
+                        ${s.name ? s.name[0].toUpperCase() : '?'}
+                    </div>
+                    <div>
+                        <div style="color:white;font-size:14px;font-weight:600;">${s.name}</div>
+                        <div style="color:#76B900;font-size:12px;">${s.course}</div>
+                    </div>
+                </div>`).join("");
+        }
+
+        // Course distribution chart
+        const counts = COURSES.map(c => students.filter(s => s.course === c).length);
+        new Chart(document.getElementById("courseChart").getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: COURSES,
+                datasets: [{
+                    label: "Students",
+                    data: counts,
+                    backgroundColor: "rgba(118,185,0,0.7)",
+                    borderColor: "#76B900",
+                    borderWidth: 2,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: "#aaa" }, grid: { color: "#222" } },
+                    y: { ticks: { color: "#aaa", stepSize: 1 }, grid: { color: "#222" } }
+                }
+            }
+        });
+
+        // Attendance trend - last 7 days
+        const days = [];
+        const attendancePct = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().slice(0,10);
+            days.push(d.toLocaleDateString(undefined, { weekday: 'short' }));
+            const rec = attendance[key];
+            if (rec && students.length > 0) {
+                const present = Object.values(rec).filter(v => v === "present").length;
+                attendancePct.push(Math.round((present / students.length) * 100));
+            } else {
+                attendancePct.push(0);
+            }
+        }
+        new Chart(document.getElementById("attendanceChart").getContext("2d"), {
+            type: "line",
+            data: {
+                labels: days,
+                datasets: [{
+                    label: "Attendance %",
+                    data: attendancePct,
+                    borderColor: "#76B900",
+                    backgroundColor: "rgba(118,185,0,0.2)",
+                    tension: 0.35,
+                    fill: true,
+                    pointBackgroundColor: "#76B900"
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: "#aaa" }, grid: { color: "#222" } },
+                    y: { min: 0, max: 100, ticks: { color: "#aaa" }, grid: { color: "#222" } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
